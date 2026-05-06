@@ -228,7 +228,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 18px 4px 0;
+        padding: 18px 4px 24px;
       }
       .topbar .back {
         width: 36px;
@@ -280,7 +280,7 @@
      style="--hero-poster: url('your-poster.jpg')"
      ========================================================= */
       .hero {
-        margin: 24px -20px 0;
+        margin: 0 -20px;
         padding: 32px 20px 28px;
         text-align: center;
         position: relative;
@@ -951,6 +951,731 @@
       }
       .toast.show {
         transform: translateX(-50%) translateY(0);
+      }
+    </style>
+
+    <style>
+      :root {
+        /* Brand */
+        --bg-deep: #08050a;
+        --bg-modal: rgba(22, 14, 18, 0.86);
+        --border-subtle: rgba(255, 255, 255, 0.07);
+
+        --red-primary: #ff3756;
+        --red-bright: #ff5070;
+        --red-deep: #c9203d;
+        --red-glow: rgba(255, 55, 86, 0.55);
+        --red-glow-soft: rgba(255, 55, 86, 0.18);
+        --red-tint: rgba(255, 55, 86, 0.06);
+        --gold: #c9a961;
+
+        --white: #ffffff;
+        --white-92: rgba(255, 255, 255, 0.92);
+        --white-70: rgba(255, 255, 255, 0.7);
+        --white-50: rgba(255, 255, 255, 0.5);
+        --white-35: rgba(255, 255, 255, 0.35);
+
+        /* Easing */
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-bounce-soft: cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+
+      /* * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Manrope', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-deep);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  } */
+
+      /* ============================================================
+     Demo background — simulated download page beneath the modal
+     (Replace/remove when integrating into your real download page)
+     ============================================================ */
+      .page-bg {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(
+            ellipse 80% 60% at 70% 18%,
+            rgba(190, 30, 70, 0.28),
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 25% 85%,
+            rgba(60, 20, 50, 0.25),
+            transparent 70%
+          ),
+          var(--bg-deep);
+      }
+      .page-bg::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/></svg>");
+        opacity: 0.06;
+        mix-blend-mode: overlay;
+      }
+
+      /* ============================================================
+     Backdrop — frosted glass over the page
+     ============================================================ */
+      .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        /* display: flex; */
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: radial-gradient(
+          ellipse at 50% 50%,
+          rgba(0, 0, 0, 0.55),
+          rgba(0, 0, 0, 0.85)
+        );
+        backdrop-filter: blur(28px) saturate(140%);
+        -webkit-backdrop-filter: blur(28px) saturate(140%);
+        animation: backdropIn 0.6s var(--ease-out-expo) both;
+      }
+      @keyframes backdropIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* ============================================================
+     Modal
+     ============================================================ */
+      .modal {
+        position: relative;
+        width: 100%;
+        max-width: 384px;
+        background: var(--bg-modal);
+        border: 1px solid var(--border-subtle);
+        border-radius: 28px;
+        padding: 26px 24px 24px;
+        overflow: hidden;
+        isolation: isolate;
+        box-shadow:
+          0 30px 80px -20px rgba(0, 0, 0, 0.92),
+          0 0 60px -8px rgba(255, 55, 86, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        animation: modalIn 0.75s var(--ease-out-expo) both;
+      }
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: translateY(28px) scale(0.94);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* Ambient glows inside the modal (clipped by overflow:hidden) */
+      .modal::before {
+        content: "";
+        position: absolute;
+        top: -130px;
+        right: -90px;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, var(--red-glow), transparent 65%);
+        filter: blur(40px);
+        opacity: 0.5;
+        z-index: 0;
+        pointer-events: none;
+        animation: glowDriftA 9s ease-in-out infinite;
+      }
+      .modal::after {
+        content: "";
+        position: absolute;
+        bottom: -110px;
+        left: -70px;
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(
+          circle,
+          rgba(170, 30, 80, 0.4),
+          transparent 70%
+        );
+        filter: blur(50px);
+        opacity: 0.45;
+        z-index: 0;
+        pointer-events: none;
+        animation: glowDriftB 11s ease-in-out infinite;
+      }
+      @keyframes glowDriftA {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+          opacity: 0.45;
+        }
+        50% {
+          transform: translate(-18px, 22px) scale(1.12);
+          opacity: 0.6;
+        }
+      }
+      @keyframes glowDriftB {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(20px, -18px) scale(1.1);
+        }
+      }
+
+      /* Subtle grain layer */
+      .grain {
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        opacity: 0.05;
+        mix-blend-mode: overlay;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .modal-inner {
+        position: relative;
+        z-index: 3;
+      }
+
+      /* ============================================================
+     Header (top-left brand mark)
+     ============================================================ */
+      .modal-header {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-width: 44%;
+        animation: contentIn 0.7s var(--ease-out-expo) 0.18s both;
+      }
+      .brand-name {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.32em;
+        color: var(--gold);
+        font-weight: 500;
+      }
+      .brand-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        color: var(--white-35);
+        font-weight: 500;
+      }
+      .status-dot {
+        width: 5px;
+        height: 5px;
+        background: var(--red-primary);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--red-primary);
+        animation: statusPulse 1.6s ease-in-out infinite;
+      }
+      @keyframes statusPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.4);
+          opacity: 0.55;
+        }
+      }
+
+      /* ============================================================
+     Top-right corner callout — visually equal to the copy CTA
+     The animated arrow at top draws the eye upward, toward
+     where the native WeChat ⋯ menu lives outside the webview.
+     ============================================================ */
+      .corner-callout {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 180px;
+        padding: 30px 13px 13px;
+        background: linear-gradient(
+          155deg,
+          rgba(255, 80, 112, 0.18),
+          rgba(255, 55, 86, 0.04)
+        );
+        border: 1px solid rgba(255, 80, 112, 0.32);
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 5;
+        overflow: visible;
+        box-shadow:
+          0 10px 28px -10px rgba(255, 55, 86, 0.45),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        animation:
+          cornerPulse 2.6s ease-in-out infinite,
+          contentIn 0.85s var(--ease-out-expo) 0.1s both;
+      }
+      @keyframes cornerPulse {
+        0%,
+        100% {
+          box-shadow:
+            0 10px 28px -10px rgba(255, 55, 86, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 80, 112, 0.32);
+        }
+        50% {
+          box-shadow:
+            0 12px 36px -6px rgba(255, 55, 86, 0.7),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 80, 112, 0.55);
+        }
+      }
+
+      /* The animated up-arrow inside the callout (top-center).
+     Points UP — implying "look further up, toward the native ⋯" */
+      .callout-arrow-stack {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        pointer-events: none;
+      }
+      .callout-arrow-stack svg {
+        width: 18px;
+        height: 18px;
+        color: var(--red-bright);
+        filter: drop-shadow(0 0 6px var(--red-glow));
+      }
+      .callout-arrow-stack svg:nth-child(1) {
+        animation: arrowBounce 1.4s ease-in-out infinite;
+        opacity: 1;
+      }
+      .callout-arrow-stack svg:nth-child(2) {
+        animation: arrowBounce 1.4s ease-in-out infinite 0.18s;
+        opacity: 0.55;
+        margin-top: -8px;
+        transform: scale(0.78);
+      }
+      .callout-arrow-stack svg:nth-child(3) {
+        animation: arrowBounce 1.4s ease-in-out infinite 0.36s;
+        opacity: 0.25;
+        margin-top: -10px;
+        transform: scale(0.6);
+      }
+
+      @keyframes arrowBounce {
+        0%,
+        100% {
+          transform: translateY(0) scale(var(--s, 1));
+        }
+        50% {
+          transform: translateY(-5px) scale(var(--s, 1));
+        }
+      }
+
+      /* The body of the callout — icon + label + 2 lines of text */
+      .callout-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .callout-icon {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: linear-gradient(135deg, var(--red-bright), var(--red-deep));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        line-height: 1;
+        box-shadow:
+          0 6px 14px -3px rgba(255, 55, 86, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.25),
+          inset 0 -4px 8px rgba(0, 0, 0, 0.18);
+      }
+      .callout-icon span {
+        transform: translateY(-2px);
+      }
+
+      .callout-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-top: 1px;
+      }
+      .callout-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 8.5px;
+        letter-spacing: 0.18em;
+        color: var(--red-bright);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+        text-shadow: 0 0 8px var(--red-glow-soft);
+      }
+      .callout-line-1 {
+        font-family: "Noto Sans SC", sans-serif;
+        font-size: 12.5px;
+        color: var(--white-92);
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      .callout-line-2 {
+        font-family: "Noto Sans SC", sans-serif;
+        font-size: 11px;
+        color: var(--white-70);
+        font-weight: 500;
+        line-height: 1.3;
+        margin-top: 1px;
+        letter-spacing: 0.01em;
+      }
+      .callout-emphasis {
+        color: var(--white);
+        font-weight: 800;
+        font-size: 13.5px;
+        letter-spacing: 1px;
+        padding: 0 2px;
+        display: inline-block;
+        transform: translateY(-1px);
+      }
+
+      /* ============================================================
+     Hero — central content
+     ============================================================ */
+      .hero-tip {
+        margin-top: 78px;
+        text-align: center;
+        padding: 0 4px;
+      }
+
+      .hero-icon {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 22px;
+        position: relative;
+        animation: contentIn 0.8s var(--ease-out-expo) 0.28s both;
+      }
+      .hero-icon::before {
+        content: "";
+        position: absolute;
+        inset: -14px;
+        background: radial-gradient(circle, var(--red-glow), transparent 65%);
+        filter: blur(16px);
+        animation: iconGlow 2.6s ease-in-out infinite;
+      }
+      @keyframes iconGlow {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: scale(0.95);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.12);
+        }
+      }
+      .hero-icon-core {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          140deg,
+          var(--red-bright) 0%,
+          var(--red-primary) 50%,
+          var(--red-deep) 100%
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+          0 10px 26px -4px rgba(255, 55, 86, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.32),
+          inset 0 -8px 18px rgba(0, 0, 0, 0.32);
+      }
+      .hero-icon-core svg {
+        width: 30px;
+        height: 30px;
+        color: var(--white);
+        stroke-width: 2.2;
+      }
+      /* Orbital ring around the icon */
+      .hero-icon-ring {
+        position: absolute;
+        inset: -8px;
+        border: 1px solid rgba(255, 80, 112, 0.25);
+        border-radius: 50%;
+        animation: ringRotate 8s linear infinite;
+      }
+      .hero-icon-ring::before {
+        content: "";
+        position: absolute;
+        top: -3px;
+        left: 50%;
+        width: 6px;
+        height: 6px;
+        background: var(--red-bright);
+        border-radius: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 0 10px var(--red-bright);
+      }
+      @keyframes ringRotate {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .hero-title {
+        font-family: "Unbounded", "Manrope", sans-serif;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1;
+        margin-bottom: 12px;
+        background: linear-gradient(
+          180deg,
+          #ffffff 30%,
+          rgba(255, 255, 255, 0.6)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: contentIn 0.7s var(--ease-out-expo) 0.36s both;
+      }
+      .hero-subtitle {
+        font-family: "Noto Sans SC", sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--white-92);
+        margin-bottom: 14px;
+        letter-spacing: 0.04em;
+        animation: contentIn 0.7s var(--ease-out-expo) 0.42s both;
+      }
+      .hero-description {
+        font-family: "Noto Sans SC", sans-serif;
+        font-size: 12.5px;
+        color: var(--white-50);
+        line-height: 1.65;
+        max-width: 280px;
+        margin: 0 auto 22px;
+        font-weight: 400;
+        animation: contentIn 0.7s var(--ease-out-expo) 0.5s both;
+      }
+
+      /* Method divider — small label "OR" between the two methods */
+      .method-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 60%;
+        margin: 0 auto 18px;
+        animation: contentIn 0.7s var(--ease-out-expo) 0.54s both;
+      }
+      .method-divider::before,
+      .method-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.12),
+          transparent
+        );
+      }
+      .method-divider span {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        color: var(--white-35);
+        font-weight: 500;
+      }
+
+      /* ============================================================
+     Copy CTA — equal-priority alternative method
+     ============================================================ */
+      .copy-cta {
+        position: relative;
+        width: 100%;
+        height: 56px;
+        background: linear-gradient(
+          135deg,
+          var(--red-bright) 0%,
+          var(--red-primary) 50%,
+          var(--red-deep) 100%
+        );
+        border: none;
+        border-radius: 16px;
+        color: var(--white);
+        font-family: "Noto Sans SC", "Manrope", sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow:
+          0 14px 34px -10px rgba(255, 55, 86, 0.6),
+          0 0 0 1px rgba(255, 80, 112, 0.32),
+          inset 0 1px 0 rgba(255, 255, 255, 0.22),
+          inset 0 -8px 18px rgba(0, 0, 0, 0.18);
+        transition:
+          transform 0.2s var(--ease-bounce-soft),
+          box-shadow 0.3s ease;
+        animation: contentIn 0.7s var(--ease-out-expo) 0.6s both;
+        line-height: 16px;
+      }
+      .copy-cta::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+          100deg,
+          transparent,
+          rgba(255, 255, 255, 0.32),
+          transparent
+        );
+        transform: skewX(-18deg);
+        animation: shimmer 4s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          left: -120%;
+        }
+        35% {
+          left: 130%;
+        }
+        100% {
+          left: 130%;
+        }
+      }
+      .copy-cta:active {
+        transform: scale(0.98);
+      }
+      .copy-cta:hover {
+        box-shadow:
+          0 18px 42px -8px rgba(255, 55, 86, 0.75),
+          0 0 0 1px rgba(255, 80, 112, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3),
+          inset 0 -8px 18px rgba(0, 0, 0, 0.18);
+      }
+
+      .copy-cta__icon {
+        display: flex;
+        align-items: center;
+      }
+      .copy-cta__icon svg {
+        width: 18px;
+        height: 18px;
+        stroke-width: 2;
+      }
+      .copy-cta__arrow {
+        transition: transform 0.3s var(--ease-bounce-soft);
+      }
+      .copy-cta:hover .copy-cta__arrow {
+        transform: translateX(4px);
+      }
+
+      .copy-cta.is-success {
+        background: linear-gradient(135deg, #2ee89d, #00c46b);
+        box-shadow: 0 14px 34px -10px rgba(46, 232, 157, 0.55);
+      }
+      .copy-cta.is-success::before {
+        display: none;
+      }
+
+      /* ============================================================
+     Shared content-in animation
+     ============================================================ */
+      @keyframes contentIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ============================================================
+     Mobile fine-tuning
+     ============================================================ */
+      @media (max-width: 380px) {
+        .modal {
+          padding: 22px 18px 20px;
+        }
+        .corner-callout {
+          width: 162px;
+          right: 12px;
+          top: 12px;
+          padding: 28px 11px 12px;
+        }
+        .callout-icon {
+          width: 28px;
+          height: 28px;
+          font-size: 14px;
+        }
+        .callout-line-1 {
+          font-size: 11.5px;
+        }
+        .callout-line-2 {
+          font-size: 10.5px;
+        }
+        .hero-tip {
+          margin-top: 72px;
+        }
+        .hero-title {
+          font-size: 30px;
+        }
+        .hero-subtitle {
+          font-size: 15px;
+        }
+      }
+
+      /* Respect reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
       }
     </style>
 
@@ -2403,7 +3128,7 @@
       <!-- 顶部下载引导 banner — 点击平滑滚动到下载按钮 -->
       <a class="topcall" href="#download" onclick="scrollToDownload(event)">
         <span
-          >⚡ Segera instal apk versi lengkap • tidak akan pernah hilang</span
+          >⚡ Segera instal app versi lengkap • tidak akan pernah hilang</span
         >
         <span class="arrow">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -2520,8 +3245,7 @@
           </span>
           <span class="cta-text-wrap">
             Klik unduh dan instal
-            <span class="cta-meta"
-              >
+            <span class="cta-meta">
               Cocok digunakan oleh iPhone&iPad• 38 MB</span
             >
           </span>
@@ -2695,7 +3419,8 @@
             <div class="step-body">
               <div class="step-title">Izinkan dan instal</div>
               <p class="step-desc">
-                Jika sistem meminta,silakan buka <kbd>Izinkan instalasi dari sumber ini</kbd>, Lalu klik
+                Jika sistem meminta,silakan buka
+                <kbd>Izinkan instalasi dari sumber ini</kbd>, Lalu klik
                 <kbd>Instal</kbd>, Tunggu beberapa menit hingga selesai.
               </p>
             </div>
@@ -2722,7 +3447,10 @@
           </div>
           <div>
             <h4>Apk resmi • dapat diverifikasi</h4>
-            <p>Sudah lolos dari pemeriksaan keamanan oleh VirusTotal dan Google Play Protect</p>
+            <p>
+              Sudah lolos dari pemeriksaan keamanan oleh VirusTotal dan Google
+              Play Protect
+            </p>
           </div>
         </div>
       </section>
@@ -2735,7 +3463,9 @@
           <a href="#">Pusat bantuan</a>
           <a href="#">Hubungi kami</a>
         </div>
-        <div class="footer-meta">© 2026 SHORTPRO · Menghormati setiap cerita yang luar biasa</div>
+        <div class="footer-meta">
+          © 2026 SHORTPRO · Menghormati setiap cerita yang luar biasa
+        </div>
         <div class="footer-switch">
           Salah terdeteksi?beralih ke
           <a
@@ -2756,43 +3486,185 @@
     <!-- iOS install overlay -->
     <div class="overlay" id="overlay">
       <div class="overlay-card">
-        <h3>Tinggal satu langkah terakhir </h3>
-        <p>File konfigurasi telah selesai di unduh,silakan ikuti langkah langkah berikut untuk menyelesaikan instalasi di iPhone:</p>
+        <h3>Tinggal satu langkah terakhir</h3>
+        <p>
+          File konfigurasi telah selesai di unduh,silakan ikuti langkah langkah
+          berikut untuk menyelesaikan instalasi di iPhone:
+        </p>
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
             <div class="step-body">
               <div class="step-title">Buka aplikasi "Pengaturan"</div>
               <p class="step-desc">
-                Di layar utama cari ikon <kbd> ⚙️pengaturan </kbd> lalu klik masuk 
+                Di layar utama cari ikon <kbd> ⚙️pengaturan </kbd> lalu klik
+                masuk
               </p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-body">
-              <div class="step-title">Masuk ke VPN dan Manajemen perangkat </div>
+              <div class="step-title">Masuk ke VPN dan Manajemen perangkat</div>
               <p class="step-desc">
-                Masuk secara berurutan <kbd>umum</kbd>-<kbd> VPN dan Manajemen perangkat</kbd>,klik<strong>Shortpro</strong> file konfigurasi 
+                Masuk secara berurutan <kbd>umum</kbd>-<kbd>
+                  VPN dan Manajemen perangkat</kbd
+                >,klik<strong>Shortpro</strong> file konfigurasi
               </p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">3</div>
             <div class="step-body">
-              <div class="step-title">Klik instal dan masukkan kata sandi </div>
+              <div class="step-title">Klik instal dan masukkan kata sandi</div>
               <p class="step-desc">
-                Masukkan kata sandi layar kunci perangkat dan tunggu hingga instalasi selesai,kemudian kembali ke layar utama dengan begitu sudah bisa membuka ShortPro dan mulai menonton drama pendek.
+                Masukkan kata sandi layar kunci perangkat dan tunggu hingga
+                instalasi selesai,kemudian kembali ke layar utama dengan begitu
+                sudah bisa membuka ShortPro dan mulai menonton drama pendek.
               </p>
             </div>
           </div>
         </div>
-        <button class="overlay-close" onclick="closeOverlay()">Saya mengerti </button>
+        <button class="overlay-close" onclick="closeOverlay()">
+          Saya mengerti
+        </button>
       </div>
     </div>
 
     <!-- Toast -->
-    <div class="toast" id="toast">Tautan telah disalin ke papan klip </div>
+    <div class="toast" id="toast">Tautan telah disalin ke papan klip</div>
+
+    <!-- Demo background, replace with your real download page -->
+    <div class="page-bg" aria-hidden="true"></div>
+
+    <!-- ============================================================
+     The popup — drop this whole .modal-backdrop block into your
+     download page when the in-app browser is detected.
+     ============================================================ -->
+    <div class="modal-backdrop" id="browserModal">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-desc"
+      >
+        <div class="grain" aria-hidden="true"></div>
+
+        <div class="modal-inner">
+          <!-- Brand mark (top-left) -->
+          <header class="modal-header">
+            <div class="brand-name">SHORTPRO</div>
+            <div class="brand-status">
+              <span class="status-dot" aria-hidden="true"></span>
+              ACTION REQUIRED
+            </div>
+          </header>
+
+          <!-- =========================================================
+           METHOD 01 — top-right corner callout
+           Visually anchored to the upper-right of the modal.
+           Stacked up-arrows draw the user's eye upward, toward the
+           native ⋯ menu that lives in the WeChat chrome above the
+           webview. Stays entirely inside the page (no overlap).
+           ========================================================= -->
+          <aside class="corner-callout" aria-label="方法一：使用浏览器中打开">
+            <div class="callout-arrow-stack" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 19V5M12 5L5 12M12 5L19 12"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 19V5M12 5L5 12M12 5L19 12"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 19V5M12 5L5 12M12 5L19 12"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div class="callout-row">
+              <div class="callout-icon" aria-hidden="true"><span>⋯</span></div>
+              <div class="callout-text">
+                <div class="callout-label">Metode • 01</div>
+                <div class="callout-line-1">
+                  Klik kanan atas
+                </div>
+                <div class="callout-line-2">"Buka di browser"</div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- =========================================================
+           Hero
+           ========================================================= -->
+          <div class="hero-tip">
+            <div class="hero-icon" aria-hidden="true">
+              <div class="hero-icon-ring"></div>
+              <div class="hero-icon-core">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M14 4h6v6M20 4l-8 8M10 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-4"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <h1 class="hero-title" id="modal-title">ALMOST THERE</h1>
+            <h2 class="hero-subtitle">Silakan buka menggunakan browser</h2>
+            <p class="hero-description" id="modal-desc">
+              Untuk bisa menyelesaikan unduhan dan instal dengan lancar <br />
+              Silakan pilih salah satu cara yang dibawah ini untuk melanjutkan.
+            </p>
+
+            <div class="method-divider"><span>Metode · 02</span></div>
+
+            <!-- =========================================================
+             METHOD 02 — copy install link
+             ========================================================= -->
+            <button
+              class="copy-cta"
+              type="button"
+              id="copyBtn"
+              aria-label="Metode 2: Salin link instalasi"
+            >
+              <span class="copy-cta__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path
+                    d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+                  />
+                </svg>
+              </span>
+              <span class="copy-cta__label">Salin link instalasi</span>
+              <span class="copy-cta__arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+        <!-- /.modal-inner -->
+      </div>
+      <!-- /.modal -->
+    </div>
+    <!-- /.modal-backdrop -->
 
     <script>
       /* 平台手动切换 — fallback 给 UA 误判的少数场景 */
@@ -2808,21 +3680,18 @@
 
       function installIOS() {
         window.location.href = IOS_PROFILE_URL;
-        setTimeout(
-          () => {
-            document.getElementById("overlay").classList.add("show")
-            document.documentElement.style.overflow = 'hidden';
-            document.body.style.overflow = 'hidden';
-          },
-          1200,
-        );
+        setTimeout(() => {
+          document.getElementById("overlay").classList.add("show");
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+        }, 1200);
       }
       function installAndroid() {
         window.location.href = ANDROID_APK_URL;
       }
       function closeOverlay() {
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
         document.getElementById("overlay").classList.remove("show");
       }
       document.getElementById("overlay").addEventListener("click", (e) => {
@@ -2849,6 +3718,16 @@
               });
             } catch (e) {}
           });
+
+          console.log("QR code rendered");
+          const urlParams = new URLSearchParams(window.location.search);
+          const from = urlParams.get("from"); // 获取 id 参数
+          console.log(from);
+          const topbar = document.querySelector(".topbar");
+          console.log(topbar);
+          if (from !== "h5") {
+            topbar.style.setProperty("display", "none", "important");
+          }
         }
         if (document.readyState === "loading") {
           document.addEventListener("DOMContentLoaded", render);
@@ -2876,6 +3755,113 @@
           }, 300);
         }
       }
+    </script>
+    <script>
+      (function () {
+        function isInBuiltInBrowser() {
+          const ua = navigator.userAgent.toLowerCase();
+
+          // 内置浏览器关键词
+          const keywords = [
+            "micromessenger", // 微信
+            "qq\\/", // QQ
+            "weibo", // 微博
+            "aweme", // 抖音
+            "tiktok", // TikTok
+            "instagram", // Instagram
+            "fb", // Facebook
+            "messenger", // Messenger
+            "whatsapp", // WhatsApp
+            "telegram", // Telegram
+            "line", // LINE
+            "twitter", // Twitter
+            "x-app", // X
+          ];
+
+          // 检查是否匹配
+          const isMatched = keywords.some((keyword) =>
+            new RegExp(keyword, "i").test(ua),
+          );
+
+          // iOS WebView 检测（UA 有 WebKit 无 Safari）
+          const isIOS = /iphone|ipad|ipod/.test(ua);
+          const isIOSWebView =
+            isIOS && /webkit/i.test(ua) && !/safari/i.test(ua);
+
+          // Android WebView 检测
+          const isAndroid = /android/.test(ua);
+          const isAndroidWebView =
+            isAndroid && (/wv|webview/i.test(ua) || !/chrome/i.test(ua));
+
+          return isMatched || isIOSWebView || isAndroidWebView;
+        }
+
+        const isInAppBrowser = isInBuiltInBrowser();
+        if (!isInAppBrowser) return;
+
+        const pageBg = document.querySelector(".page-bg");
+        const browserModal = document.getElementById("browserModal");
+        pageBg.style.display = "block";
+        browserModal.style.display = "flex";
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+
+        // ⚠ Replace with your real install URL when integrating.
+        // const INSTALL_URL =
+        //   window.SHORTPRO_INSTALL_URL ||
+        //   "https://shortpro.bitbucket.io?from=h5";
+
+        const btn = document.getElementById("copyBtn");
+        const labelEl = btn.querySelector(".copy-cta__label");
+        const arrowEl = btn.querySelector(".copy-cta__arrow");
+        const originalLabel = labelEl.textContent;
+        const originalArrow = arrowEl.textContent;
+        let resetTimer = null;
+
+        async function copyToClipboard(text) {
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+              return true;
+            }
+          } catch (_) {
+            /* fall through */
+          }
+
+          // Legacy fallback for in-app browsers
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.cssText = "position:fixed;top:-1000px;opacity:0;";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          let ok = false;
+          try {
+            ok = document.execCommand("copy");
+          } catch (_) {
+            ok = false;
+          }
+          document.body.removeChild(ta);
+          return ok;
+        }
+
+        btn.addEventListener("click", async () => {
+          const ok = await copyToClipboard(window.location.href);
+
+          btn.classList.add("is-success");
+          labelEl.textContent = ok
+            ? "Sudah disalin•Silakan tempel salinan ini ke browser"
+            : "Gagal menyalin • Silakan tekan lama pada link";
+          arrowEl.textContent = ok ? "✓" : "!";
+
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => {
+            btn.classList.remove("is-success");
+            labelEl.textContent = originalLabel;
+            arrowEl.textContent = originalArrow;
+          }, 2400);
+        });
+      })();
     </script>
   </body>
 </html>
