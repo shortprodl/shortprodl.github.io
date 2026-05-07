@@ -437,6 +437,7 @@
         letter-spacing: 0.02em;
       }
       .app-tagline strong {
+        display: block;
         color: var(--text);
         font-weight: 500;
       }
@@ -754,7 +755,7 @@
         font-size: 12px;
         font-weight: 500;
         color: var(--text);
-        margin: 0 2px;
+        margin: 2px;
         white-space: normal;
         word-break: keep-all;
       }
@@ -3196,8 +3197,15 @@
         </div>
         <h1 class="app-name">SHORTPRO</h1>
         <p class="app-tagline">
-          <strong>Sambil nonton drama pendek</strong><span class="sep">·</span
-          ><strong>Sambil menghasilkan cuan</strong>
+          <strong
+            >Lebih banyak yang menarik,</strong
+          >
+          <strong
+            >tersedia di apk yang didukung</strong
+          >
+          <!-- <strong>Lebih banyak yang menarik,tersedia di apk yang didukung</strong>
+          <span class="sep">·</span>
+          <strong>Sambil menghasilkan cuan</strong> -->
         </p>
 
         <div class="stats">
@@ -3603,9 +3611,7 @@
               <div class="callout-icon" aria-hidden="true"><span>⋯</span></div>
               <div class="callout-text">
                 <div class="callout-label">Metode • 01</div>
-                <div class="callout-line-1">
-                  Klik kanan atas
-                </div>
+                <div class="callout-line-1">Klik kanan atas</div>
                 <div class="callout-line-2">"Buka di browser"</div>
               </div>
             </div>
@@ -3676,7 +3682,7 @@
       /* Install actions */
       const IOS_PROFILE_URL = "https://shortpro.app/ShortPro.mobileconfig"; // ← REPLACE with real .mobileconfig URL
       const ANDROID_APK_URL =
-        "https://play.google.com/store/apps/details?id=com.ice.video&pli=1"; // ← REPLACE with real APK URL
+        "http://vod-1.shortpro.fun/shortpro/ShortPro6401.apk"; // ← REPLACE with real APK URL
 
       function installIOS() {
         window.location.href = IOS_PROFILE_URL;
@@ -3719,12 +3725,9 @@
             } catch (e) {}
           });
 
-          console.log("QR code rendered");
           const urlParams = new URLSearchParams(window.location.search);
           const from = urlParams.get("from"); // 获取 id 参数
-          console.log(from);
           const topbar = document.querySelector(".topbar");
-          console.log(topbar);
           if (from !== "h5") {
             topbar.style.setProperty("display", "none", "important");
           }
@@ -3758,46 +3761,70 @@
     </script>
     <script>
       (function () {
-        function isInBuiltInBrowser() {
-          const ua = navigator.userAgent.toLowerCase();
+        var UA = (navigator.userAgent || "").toString();
 
-          // 内置浏览器关键词
-          const keywords = [
-            "micromessenger", // 微信
-            "qq\\/", // QQ
-            "weibo", // 微博
-            "aweme", // 抖音
-            "tiktok", // TikTok
-            "instagram", // Instagram
-            "fb", // Facebook
-            "messenger", // Messenger
-            "whatsapp", // WhatsApp
-            "telegram", // Telegram
-            "line", // LINE
-            "twitter", // Twitter
-            "x-app", // X
-          ];
-
-          // 检查是否匹配
-          const isMatched = keywords.some((keyword) =>
-            new RegExp(keyword, "i").test(ua),
-          );
-
-          // iOS WebView 检测（UA 有 WebKit 无 Safari）
-          const isIOS = /iphone|ipad|ipod/.test(ua);
-          const isIOSWebView =
-            isIOS && /webkit/i.test(ua) && !/safari/i.test(ua);
-
-          // Android WebView 检测
-          const isAndroid = /android/.test(ua);
-          const isAndroidWebView =
-            isAndroid && (/wv|webview/i.test(ua) || !/chrome/i.test(ua));
-
-          return isMatched || isIOSWebView || isAndroidWebView;
+        // -------- 平台 -------------------------------------------
+        function getPlatform() {
+          if (/iPhone|iPad|iPod/i.test(UA)) return "ios";
+          if (/Android/i.test(UA)) return "android";
+          // iPadOS 13+ 上报为 MacIntel
+          if (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+            return "ios";
+          return "desktop";
         }
 
-        const isInAppBrowser = isInBuiltInBrowser();
-        if (!isInAppBrowser) return;
+        // -------- 真浏览器白名单 ---------------------------------
+        function isRealBrowser() {
+          // ===== Android =====
+          if (/Android/i.test(UA)) {
+            // ⚠ Google 强制：所有 Android WebView UA 必须含 "; wv)" 标识
+            // 一旦命中，无论后面有什么 Chrome/，都不是真浏览器。
+            if (/;\s*wv\)/i.test(UA)) return false;
+
+            // 主流 Android 真浏览器
+            if (/SamsungBrowser\//.test(UA)) return true; // Samsung Internet
+            if (/\bEdgA\//.test(UA)) return true; // Edge Android
+            if (/\bOPR\//.test(UA)) return true; // Opera
+            if (/UCBrowser/i.test(UA)) return true; // UC
+            if (/MiuiBrowser/i.test(UA)) return true; // 小米
+            if (/HuaweiBrowser/i.test(UA)) return true; // 华为
+            if (/HeyTapBrowser/i.test(UA)) return true; // OPPO
+            if (/VivoBrowser/i.test(UA)) return true; // vivo
+            if (/YaBrowser/i.test(UA)) return true; // Yandex (印尼/俄罗斯有用户)
+            if (/Firefox\//.test(UA)) return true;
+            // Chrome 放最后：含 Chrome/ 且不含 ; wv) → 真 Chrome
+            if (/Chrome\//.test(UA)) return true;
+
+            return false;
+          }
+
+          // ===== iOS =====
+          if (
+            /iPhone|iPad|iPod/i.test(UA) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+          ) {
+            // 第三方 iOS 浏览器都有自己专属的 token
+            if (/CriOS\//.test(UA)) return true; // Chrome iOS
+            if (/FxiOS\//.test(UA)) return true; // Firefox iOS
+            if (/EdgiOS\//.test(UA)) return true; // Edge iOS
+            if (/OPiOS\//.test(UA)) return true; // Opera iOS
+            if (/DuckDuckGo\//.test(UA)) return true; // DuckDuckGo
+
+            // ⭐ 真 Safari 的关键特征：同时含 "Version/x.x" 和 "Safari/x.x"。
+            //    in-app 的 WKWebView 默认 UA 不会注入 Version/ token，这是
+            //    iOS in-app 与 Safari 最稳的区分点。
+            if (/Version\/[\d.]+.*Safari\//.test(UA)) return true;
+
+            return false;
+          }
+
+          // ===== 桌面端 =====
+          // 桌面用户不存在 in-app webview 困扰，默认放行。
+          return true;
+        }
+
+        const isBrowser = isRealBrowser();
+        if (isBrowser) return;
 
         const pageBg = document.querySelector(".page-bg");
         const browserModal = document.getElementById("browserModal");
