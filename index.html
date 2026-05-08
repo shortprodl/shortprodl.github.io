@@ -1680,6 +1680,105 @@
       }
     </style>
 
+    <style>
+      /* 把这段 CSS 放到你的样式文件中 */
+      .download-loading .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .download-loading .loading-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px 40px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        animation: scaleIn 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 180px;
+      }
+
+      .download-loading .loading-spinner svg {
+        width: 50px;
+        height: 50px;
+        color: #6366f1;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .download-loading .loading-check {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .download-loading .loading-error {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .download-loading .loading-text {
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .download-loading .loading-sub {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #9ca3af;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
+
     <!-- QR generator (kazuhikoarase/qrcode-generator, MIT) -->
     <script>
       var qrcode = (function () {
@@ -3197,12 +3296,8 @@
         </div>
         <h1 class="app-name">SHORTPRO</h1>
         <p class="app-tagline">
-          <strong
-            >Lebih banyak yang menarik,</strong
-          >
-          <strong
-            >tersedia di apk yang didukung</strong
-          >
+          <strong>Lebih banyak yang menarik,</strong>
+          <strong>tersedia di apk yang didukung</strong>
           <!-- <strong>Lebih banyak yang menarik,tersedia di apk yang didukung</strong>
           <span class="sep">·</span>
           <strong>Sambil menghasilkan cuan</strong> -->
@@ -3692,8 +3787,50 @@
           document.body.style.overflow = "hidden";
         }, 1200);
       }
-      function installAndroid() {
-        window.location.href = ANDROID_APK_URL;
+      async function installAndroid() {
+        const loading = document.createElement("div");
+        loading.className = "download-loading";
+        loading.innerHTML = `
+   <div class="loading-overlay">
+    <div class="loading-card">
+      <div class="loading-spinner">
+        <svg viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <animate attributeName="stroke-dasharray" values="1,150;90,150;90,150" dur="1.5s" repeatCount="indefinite" />
+            <animate attributeName="stroke-dashoffset" values="0;-35;-124" dur="1.5s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+      </div>
+      <div class="loading-text">Sedang mengunduh...</div>
+    </div>
+  </div>
+  `;
+        document.body.appendChild(loading);
+
+        try {
+          const response = await fetch(ANDROID_APK_URL);
+          const blob = await response.blob();
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "ShortPro6401.apk";
+          a.click();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          loading.innerHTML = `
+      <div class="loading-overlay">
+        <div class="loading-card">
+          <div class="loading-error">✗</div>
+          <div class="loading-text">Unduh gagal</div>
+          <div class="loading-sub">Silakan periksa jaringan dan coba lagi</div>
+        </div>
+      </div>
+    `;
+          setTimeout(() => {
+            document.body.removeChild(loading);
+          }, 2000);
+        }
       }
       function closeOverlay() {
         document.documentElement.style.overflow = "";
