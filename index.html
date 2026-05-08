@@ -3817,6 +3817,9 @@
           a.download = "ShortPro6401.apk";
           a.click();
           URL.revokeObjectURL(url);
+          setTimeout(() => {
+            document.body.removeChild(loading);
+          }, 1500);
         } catch (error) {
           loading.innerHTML = `
       <div class="loading-overlay">
